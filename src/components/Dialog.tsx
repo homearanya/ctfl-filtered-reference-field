@@ -65,11 +65,15 @@ const Dialog = (props: DialogProps) => {
         )
     }
     props.sdk.space
-      .getEntries({
-        content_type: props.sdk.parameters.invocation.contentType,
-        [`fields.${props.sdk.parameters.invocation.filterName}.sys.id`]: props
-          .sdk.parameters.invocation.filterValue,
-      })
+      .getEntries(
+        props.sdk.parameters.invocation.filterValue
+          ? {
+              content_type: props.sdk.parameters.invocation.contentType,
+              [`fields.${props.sdk.parameters.invocation.filterName}.sys.id`]: props
+                .sdk.parameters.invocation.filterValue,
+            }
+          : { content_type: props.sdk.parameters.invocation.contentType }
+      )
       .then((data) => {
         setEntries(
           data.items.filter((e) => {
@@ -93,11 +97,12 @@ const Dialog = (props: DialogProps) => {
       </Flex>
       <Flex
         flexDirection="column"
-        marginBottom="spacingS"
+        marginBottom="spacingL"
         style={{ height: "500px", overflowY: "auto" }}
       >
         {entries.map((entry, index) => {
           const isSelected = selectedEntries.findIndex((e) => e === index) > -1
+
           return (
             <Flex
               key={index}
@@ -108,14 +113,20 @@ const Dialog = (props: DialogProps) => {
             >
               <EntryCard
                 title={
-                  entry.fields[props.sdk.parameters.invocation.titleFieldName][
-                    props.sdk.parameters.invocation.locale
-                  ]
+                  entry.fields[props.sdk.parameters.invocation.titleFieldName]
+                    ? entry.fields[
+                        props.sdk.parameters.invocation.titleFieldName
+                      ][props.sdk.parameters.invocation.locale]
+                    : ""
                 }
                 description={
                   entry.fields[
                     props.sdk.parameters.invocation.descriptionFieldName
-                  ][props.sdk.parameters.invocation.locale]
+                  ]
+                    ? entry.fields[
+                        props.sdk.parameters.invocation.descriptionFieldName
+                      ][props.sdk.parameters.invocation.locale]
+                    : ""
                 }
                 contentType={props.sdk.parameters.invocation.contentTypeName}
                 status={findStatus(

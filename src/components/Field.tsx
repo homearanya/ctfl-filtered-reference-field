@@ -43,7 +43,11 @@ const Field = (props: FieldProps) => {
         filterName: props.sdk.parameters.instance.relatedField,
         filterValue: props.sdk.entry.fields[
           props.sdk.parameters.instance.relatedField
-        ].getValue().sys.id,
+        ].getValue()
+          ? props.sdk.entry.fields[
+              props.sdk.parameters.instance.relatedField
+            ].getValue().sys.id
+          : "",
         alreadySelected: entries.map((e) => e.sys.id),
       },
     })

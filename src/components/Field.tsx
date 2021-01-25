@@ -11,13 +11,6 @@ interface FieldProps {
 const Field = (props: FieldProps) => {
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
 
-  // const insertEntries = (newEntries) => {
-  //   console.log("hello!")
-  //   const allEntries = [...entries, ...newEntries]
-  //   props.sdk.field.setValue(allEntries)
-  //   setEntries(allEntries)
-  // }
-
   const contentTypeName = useMemo(() => {
     const itemFound = props.sdk.editor.editorInterface.controls.find(
       (e) => e.fieldId === props.sdk.field.id
@@ -34,7 +27,6 @@ const Field = (props: FieldProps) => {
       shouldCloseOnOverlayClick: true,
       allowHeightOverflow: true, // TODO: this is a temporary fix to make sure we can infinitely scroll
       parameters: {
-        titleFieldName: props.sdk.parameters.instance.titleFieldName,
         descriptionFieldName:
           props.sdk.parameters.instance.descriptionFieldName,
         locale: props.sdk.parameters.instance.locale,
@@ -64,7 +56,6 @@ const Field = (props: FieldProps) => {
     )
     props.sdk.window.startAutoResizer()
   }, [props.sdk.window])
-
   return (
     <>
       <Flex marginBottom="spacingS" flexDirection="column">

@@ -27,6 +27,7 @@ const Dialog = (props: DialogProps) => {
   const [selectedEntries, setSelectedEntries] = useState([])
   const [filterName, setFilterName] = useState("")
   const [entries, setEntries] = useState([])
+  const [entryTitleFieldName, setEntryTitleFieldName] = useState("title")
 
   const insertEntries = () => {
     props.sdk.close(
@@ -43,6 +44,7 @@ const Dialog = (props: DialogProps) => {
   }
 
   useEffect(() => {
+    // Name of the Content Type
     if (props.sdk.parameters.invocation.filterValue) {
       props.sdk.space
         .getEntry(props.sdk.parameters.invocation.filterValue)
@@ -64,6 +66,7 @@ const Dialog = (props: DialogProps) => {
           console.log("there has been an error (getEntry): ", error)
         )
     }
+    // Fetch entries
     props.sdk.space
       .getEntries(
         props.sdk.parameters.invocation.filterValue
@@ -75,15 +78,27 @@ const Dialog = (props: DialogProps) => {
           : { content_type: props.sdk.parameters.invocation.contentType }
       )
       .then((data) => {
-        setEntries(
-          data.items.filter((e) => {
-            return !props.sdk.parameters.invocation.alreadySelected.find(
-              (item) => {
-                return item === e.sys.id
-              }
+        // Filter out entries already inserted on entry
+        const entries = data.items.filter((e) => {
+          return !props.sdk.parameters.invocation.alreadySelected.find(
+            (item) => {
+              return item === e.sys.id
+            }
+          )
+        })
+        // Look up for entries display field name
+        if (entries && entries.length > 0) {
+          props.sdk.space
+            .getContentType(entries[0].sys.contentType.sys.id)
+            .then((contentType) => {
+              setEntryTitleFieldName(contentType.displayField)
+            })
+            .catch((error) =>
+              console.log("there has been an error (getContentType): ", error)
             )
-          })
-        )
+        }
+        // Render entries
+        setEntries(entries)
       })
       .catch((error) =>
         console.log("there has been an error(getEntries): ", error)
@@ -113,10 +128,10 @@ const Dialog = (props: DialogProps) => {
             >
               <EntryCard
                 title={
-                  entry.fields[props.sdk.parameters.invocation.titleFieldName]
-                    ? entry.fields[
-                        props.sdk.parameters.invocation.titleFieldName
-                      ][props.sdk.parameters.invocation.locale]
+                  entry.fields[entryTitleFieldName]
+                    ? entry.fields[entryTitleFieldName][
+                        props.sdk.parameters.invocation.locale
+                      ]
                     : ""
                 }
                 description={

@@ -16,6 +16,7 @@ const Field = (props: FieldProps) => {
       (e) => e.fieldId === props.sdk.field.id
     )
     return itemFound ? itemFound.field.name : ""
+    // eslint-disable-next-line
   }, [props.sdk.editor.editorInterface.controls])
 
   const openSearch = async () => {
@@ -55,7 +56,7 @@ const Field = (props: FieldProps) => {
       setEntries(props.sdk.field.getValue() || [])
     )
     props.sdk.window.startAutoResizer()
-  }, [props.sdk.window])
+  }, [props.sdk.window, props.sdk.field])
   return (
     <>
       <Flex marginBottom="spacingS" flexDirection="column">

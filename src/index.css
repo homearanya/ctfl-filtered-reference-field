@@ -8,3 +8,13 @@ div {
   font: inherit;
   vertical-align: baseline;
 }
+
+.entry-card:focus {
+  border: 1px solid #d3dce0;
+  box-shadow: none !important;
+}
+
+.entry-card-selected:focus {
+  border: 1px solid #2e75d4;
+  box-shadow: inset 0 0 0 1px #2e75d4;
+}

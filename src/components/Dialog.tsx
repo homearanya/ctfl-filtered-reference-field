@@ -1,12 +1,9 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react"
-import {
-  Flex,
-  Paragraph,
-  EntryCard,
-  Button,
-} from "@contentful/forma-36-react-components"
+import { Flex, EntryCard, Button } from "@contentful/forma-36-react-components"
 import { DialogExtensionSDK } from "@contentful/app-sdk"
+import FilterAutoComplete from "./FilterAutoComplete"
+// import FilterAutoCompleteEntries from "./FilterAutoCompleteEntries"
 
 const findStatus = (publishedVersion, version, archivedVersion) => {
   if (!publishedVersion) return "draft"
@@ -24,10 +21,22 @@ interface DialogProps {
 }
 
 const Dialog = (props: DialogProps) => {
+  const {
+    locale,
+    contentTypeID,
+    contentTypeFieldTitle,
+    contentTypeFieldDescription,
+    relatedFieldID,
+    relatedContentTypeFieldTitles,
+    selectedRelatedField,
+    alreadySelected,
+  } = props.sdk.parameters.invocation
+  const [filter, setFilter] = useState(selectedRelatedField)
+
   const [selectedEntries, setSelectedEntries] = useState([])
-  const [filterName, setFilterName] = useState("")
+
   const [entries, setEntries] = useState([])
-  const [entryTitleFieldName, setEntryTitleFieldName] = useState("title")
+  const [items, setItems] = useState([])
 
   const insertEntries = () => {
     props.sdk.close(
@@ -44,71 +53,63 @@ const Dialog = (props: DialogProps) => {
   }
 
   useEffect(() => {
-    // Name of the Content Type
-    if (props.sdk.parameters.invocation.filterValue) {
-      props.sdk.space
-        .getEntry(props.sdk.parameters.invocation.filterValue)
-        .then((entry) => {
-          props.sdk.space
-            .getContentType(entry.sys.contentType.sys.id)
-            .then((contentType) => {
-              setFilterName(
-                entry.fields[contentType.displayField][
-                  props.sdk.parameters.invocation.locale
-                ]
-              )
-            })
-            .catch((error) =>
-              console.log("there has been an error (getContentType): ", error)
-            )
-        })
-        .catch((error) =>
-          console.log("there has been an error (getEntry): ", error)
-        )
-    }
-    // Fetch entries
     props.sdk.space
       .getEntries(
-        props.sdk.parameters.invocation.filterValue
+        filter && filter.id
           ? {
-              content_type: props.sdk.parameters.invocation.contentType,
-              [`fields.${props.sdk.parameters.invocation.filterName}.sys.id`]: props
-                .sdk.parameters.invocation.filterValue,
+              content_type: contentTypeID,
+              [`fields.${relatedFieldID}.sys.id`]: filter.id,
+              limit: 1000,
             }
-          : { content_type: props.sdk.parameters.invocation.contentType }
+          : {
+              content_type: contentTypeID,
+              limit: 1000,
+            }
       )
       .then((data) => {
         // Filter out entries already inserted on entry
         const entries = data.items.filter((e) => {
-          return !props.sdk.parameters.invocation.alreadySelected.find(
-            (item) => {
-              return item === e.sys.id
-            }
-          )
+          return !alreadySelected.find((item) => {
+            return item === e.sys.id
+          })
         })
-        // Look up for entries display field name
-        if (entries && entries.length > 0) {
-          props.sdk.space
-            .getContentType(entries[0].sys.contentType.sys.id)
-            .then((contentType) => {
-              setEntryTitleFieldName(contentType.displayField)
-            })
-            .catch((error) =>
-              console.log("there has been an error (getContentType): ", error)
-            )
-        }
         // Render entries
         setEntries(entries)
+        setItems(
+          entries.map((entry) => ({
+            label: entry.fields[contentTypeFieldTitle]
+              ? entry.fields[contentTypeFieldTitle][locale]
+              : "",
+            lowerCaseLabel: entry.fields[contentTypeFieldTitle]
+              ? entry.fields[contentTypeFieldTitle][locale].toLowerCase()
+              : "",
+            id: entry.sys.id,
+          }))
+        )
       })
       .catch((error) =>
         console.log("there has been an error(getEntries): ", error)
       )
     // eslint-disable-next-line
-  }, [])
+  }, [filter && filter.id])
+
+  console.log({ entries, items })
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">
-        <Paragraph>{`Filtered by: ${filterName}`}</Paragraph>
+        <FilterAutoComplete
+          sdk={props.sdk}
+          relatedFieldID={relatedFieldID}
+          selectedRelatedField={selectedRelatedField}
+          relatedContentTypeFieldTitles={relatedContentTypeFieldTitles}
+          locale={locale}
+          setFilter={setFilter}
+        />
+        {/* <FilterAutoCompleteEntries
+          entries={items}
+          contentType={contentTypeID}
+          setFilter={setFilter}
+        /> */}
       </Flex>
       <Flex
         flexDirection="column"
@@ -128,19 +129,13 @@ const Dialog = (props: DialogProps) => {
             >
               <EntryCard
                 title={
-                  entry.fields[entryTitleFieldName]
-                    ? entry.fields[entryTitleFieldName][
-                        props.sdk.parameters.invocation.locale
-                      ]
+                  entry.fields[contentTypeFieldTitle]
+                    ? entry.fields[contentTypeFieldTitle][locale]
                     : ""
                 }
                 description={
-                  entry.fields[
-                    props.sdk.parameters.invocation.descriptionFieldName
-                  ]
-                    ? entry.fields[
-                        props.sdk.parameters.invocation.descriptionFieldName
-                      ][props.sdk.parameters.invocation.locale]
+                  entry.fields[contentTypeFieldDescription]
+                    ? entry.fields[contentTypeFieldDescription][locale]
                     : ""
                 }
                 contentType={props.sdk.parameters.invocation.contentTypeName}
@@ -166,6 +161,7 @@ const Dialog = (props: DialogProps) => {
                     ])
                   }
                 }}
+                size="auto"
                 className={`entry-card${isSelected ? "-selected" : ""}`}
               />
             </Flex>

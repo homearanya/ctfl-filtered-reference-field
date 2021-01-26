@@ -25,10 +25,10 @@ const FilterAutoCompleteEntries = ({
   entries,
   contentType,
   setFilter,
+  entryFilter,
+  setEntryFilter,
 }: FilterAutoCompleteEntriesProps) => {
-  const [isLoading, setIsLoading] = useState(false)
   const [filteredItems, setFilteredItems] = useState<Item[] | []>([])
-  const [selectedItem, setSelectedItem] = useState<Item | null>()
 
   const handleQueryChange = useCallback(
     (query: string) => {
@@ -43,7 +43,6 @@ const FilterAutoCompleteEntries = ({
     },
     [entries, setFilteredItems]
   )
-  console.log(entries, filteredItems)
   useEffect(() => {
     setFilteredItems(entries)
   }, [entries])
@@ -53,17 +52,16 @@ const FilterAutoCompleteEntries = ({
       items={filteredItems}
       onQueryChange={handleQueryChange}
       onChange={(e) => {
-        setSelectedItem(e)
+        setEntryFilter(e)
         const newSelectedRelatedField = {
           title: e.label,
           id: e.id,
           contentType: e.contentType,
         }
-        setFilter(newSelectedRelatedField)
       }}
-      placeholder={selectedItem ? selectedItem.label : `Choose ${contentType}`}
-      isLoading={isLoading}
-      width="large"
+      placeholder={entryFilter ? entryFilter.label : `Choose ${contentType}`}
+      isLoading={false}
+      width="medium"
       disabled={false}
       emptyListMessage="There are no items to choose from"
       noMatchesMessage="No matches"

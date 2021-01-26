@@ -9,13 +9,6 @@ interface FieldProps {
 }
 
 const Field = (props: FieldProps) => {
-  const {
-    contentTypeID,
-    descriptionFieldName,
-    locale,
-    relatedFieldID,
-  } = props.sdk.parameters.instance
-
   const [errorMessage, setErrorMessage] = useState("")
   const [contentTypeFieldTitle, setContentTypeFieldTitle] = useState("")
   const [
@@ -26,6 +19,35 @@ const Field = (props: FieldProps) => {
   const [selectedRelatedField, setSelectedRelatedField] = useState(null)
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
 
+  const { descriptionFieldName, relatedFieldID } = props.sdk.parameters.instance
+
+  const locale = props.sdk.field.locale
+
+  let contentTypeID, multiple
+  // single
+  if (props.sdk.field.type === "Link") {
+    multiple = false
+    if (
+      !props.sdk.field.validations[0] ||
+      !props.sdk.field.validations[0].linkContentType[0]
+    ) {
+      setErrorMessage("No Content Type")
+    } else {
+      contentTypeID = props.sdk.field.validations[0].linkContentType[0]
+    }
+  } else {
+    // multiple
+    multiple = true
+    if (
+      !props.sdk.field.items.validations[0] ||
+      !props.sdk.field.items.validations[0].linkContentType[0]
+    ) {
+      setErrorMessage("No Content Type")
+    } else {
+      contentTypeID = props.sdk.field.items.validations[0].linkContentType[0]
+    }
+  }
+
   const openSearch = async (
     locale,
     contentTypeID,
@@ -33,7 +55,8 @@ const Field = (props: FieldProps) => {
     contentTypeFieldDescription,
     relatedFieldID,
     relatedContentTypeFieldTitles,
-    selectedRelatedField
+    selectedRelatedField,
+    multiple
   ) => {
     const selectedEntries = await props.sdk.dialogs.openCurrentApp({
       title: "Insert existing entries",
@@ -51,10 +74,13 @@ const Field = (props: FieldProps) => {
         relatedContentTypeFieldTitles,
         selectedRelatedField,
         alreadySelected: entries.map((e) => e.sys.id),
+        multiple,
       },
     })
     if (selectedEntries) {
-      const newEntries = [...entries, ...selectedEntries]
+      const newEntries = multiple
+        ? [...entries, ...selectedEntries]
+        : [...selectedEntries]
       setEntries(newEntries)
       props.sdk.field.setValue(newEntries)
     }
@@ -137,7 +163,7 @@ const Field = (props: FieldProps) => {
       .catch((error) => {
         console.log(
           "there has been an error (getContentType - contentTypeFieldTitle): ",
-          error
+          errornpm
         )
         setErrorMessage("The app configuration is not correct")
       })
@@ -146,6 +172,17 @@ const Field = (props: FieldProps) => {
     return detachChangeHandler
     // eslint-disable-next-line
   }, [])
+
+  let buttonText
+  if (multiple) {
+    buttonText = "Add exisiting entries"
+  } else {
+    if (entries.length > 0) {
+      buttonText = "Replace entry"
+    } else {
+      buttonText = "Add an existing entry"
+    }
+  }
 
   return errorMessage ? (
     <Paragraph>{errorMessage}</Paragraph>
@@ -157,7 +194,7 @@ const Field = (props: FieldProps) => {
           entityType="Entry"
           viewType="link"
           sdk={props.sdk}
-          isInitiallyDisabled={true}
+          isInitiallyDisabled={false}
           parameters={{
             instance: {
               showCreateEntityAction: false,
@@ -175,11 +212,12 @@ const Field = (props: FieldProps) => {
             descriptionFieldName,
             relatedFieldID,
             relatedContentTypeFieldTitles,
-            selectedRelatedField
+            selectedRelatedField,
+            multiple
           )
         }
       >
-        Add exisiting entries
+        {buttonText}
       </Button>
     </>
   )

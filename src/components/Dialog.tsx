@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { Flex, EntryCard, Button } from "@contentful/forma-36-react-components"
 import { DialogExtensionSDK } from "@contentful/app-sdk"
 import FilterAutoComplete from "./FilterAutoComplete"
-// import FilterAutoCompleteEntries from "./FilterAutoCompleteEntries"
+import FilterAutoCompleteEntries from "./FilterAutoCompleteEntries"
 
 const findStatus = (publishedVersion, version, archivedVersion) => {
   if (!publishedVersion) return "draft"
@@ -30,6 +30,7 @@ const Dialog = (props: DialogProps) => {
     relatedContentTypeFieldTitles,
     selectedRelatedField,
     alreadySelected,
+    multiple,
   } = props.sdk.parameters.invocation
   const [filter, setFilter] = useState(selectedRelatedField)
 
@@ -37,6 +38,7 @@ const Dialog = (props: DialogProps) => {
 
   const [entries, setEntries] = useState([])
   const [items, setItems] = useState([])
+  const [entryFilter, setEntryFilter] = useState<Item | null>()
 
   const insertEntries = () => {
     props.sdk.close(
@@ -55,7 +57,12 @@ const Dialog = (props: DialogProps) => {
   useEffect(() => {
     props.sdk.space
       .getEntries(
-        filter && filter.id
+        entryFilter && entryFilter.id
+          ? {
+              content_type: contentTypeID,
+              "sys.id": entryFilter.id,
+            }
+          : filter && filter.id
           ? {
               content_type: contentTypeID,
               [`fields.${relatedFieldID}.sys.id`]: filter.id,
@@ -91,25 +98,33 @@ const Dialog = (props: DialogProps) => {
         console.log("there has been an error(getEntries): ", error)
       )
     // eslint-disable-next-line
-  }, [filter && filter.id])
+  }, [filter && filter.id, entryFilter && entryFilter.id])
 
-  console.log({ entries, items })
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">
-        <FilterAutoComplete
-          sdk={props.sdk}
-          relatedFieldID={relatedFieldID}
-          selectedRelatedField={selectedRelatedField}
-          relatedContentTypeFieldTitles={relatedContentTypeFieldTitles}
-          locale={locale}
-          setFilter={setFilter}
-        />
-        {/* <FilterAutoCompleteEntries
-          entries={items}
-          contentType={contentTypeID}
-          setFilter={setFilter}
-        /> */}
+        <Flex marginRight="spacingXl">
+          <FilterAutoComplete
+            sdk={props.sdk}
+            relatedFieldID={relatedFieldID}
+            selectedRelatedField={selectedRelatedField}
+            relatedContentTypeFieldTitles={relatedContentTypeFieldTitles}
+            locale={locale}
+            setFilter={setFilter}
+            setEntryFilter={setEntryFilter}
+          />
+        </Flex>
+        <Flex marginRight="spacingXl">
+          <FilterAutoCompleteEntries
+            entries={items}
+            contentType={contentTypeID}
+            entryFilter={entryFilter}
+            setEntryFilter={setEntryFilter}
+          />
+        </Flex>
+        <Button buttonType="negative" onClick={() => setEntryFilter(null)}>
+          Clear
+        </Button>
       </Flex>
       <Flex
         flexDirection="column"
@@ -149,16 +164,25 @@ const Dialog = (props: DialogProps) => {
                   const findIndex = selectedEntries.findIndex(
                     (e) => e === index
                   )
-                  if (findIndex === -1) {
-                    setSelectedEntries((selectedEntries) => [
-                      ...selectedEntries,
-                      index,
-                    ])
+                  if (multiple) {
+                    if (findIndex === -1) {
+                      setSelectedEntries((selectedEntries) => [
+                        ...selectedEntries,
+                        index,
+                      ])
+                    } else {
+                      setSelectedEntries((selectedEntries) => [
+                        ...selectedEntries.slice(0, findIndex),
+                        ...selectedEntries.slice(findIndex + 1),
+                      ])
+                    }
                   } else {
-                    setSelectedEntries((selectedEntries) => [
-                      ...selectedEntries.slice(0, findIndex),
-                      ...selectedEntries.slice(findIndex + 1),
-                    ])
+                    // single
+                    if (findIndex === -1) {
+                      setSelectedEntries([index])
+                    } else {
+                      setSelectedEntries([])
+                    }
                   }
                 }}
                 size="auto"

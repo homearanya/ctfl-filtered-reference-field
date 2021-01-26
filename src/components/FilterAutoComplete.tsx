@@ -23,6 +23,7 @@ interface FilterAutoCompleteProps {
   relatedContentTypeFieldTitles: { [key: string]: string }
   locale: string
   setFilter: (e: SelectedRelatedField) => void
+  setEntryFilter: () => void
 }
 
 const FilterAutoComplete = ({
@@ -32,6 +33,7 @@ const FilterAutoComplete = ({
   relatedContentTypeFieldTitles,
   locale,
   setFilter,
+  setEntryFilter,
 }: FilterAutoCompleteProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [items, setItems] = useState<Item[] | []>([])
@@ -118,12 +120,13 @@ const FilterAutoComplete = ({
           contentType: e.contentType,
         }
         setFilter(newSelectedRelatedField)
+        setEntryFilter(null)
       }}
       placeholder={
         selectedItem ? selectedItem.label : `Choose ${relatedFieldID}`
       }
       isLoading={isLoading}
-      width="large"
+      width="medium"
       disabled={false}
       emptyListMessage="There are no items to choose from"
       noMatchesMessage="No matches"

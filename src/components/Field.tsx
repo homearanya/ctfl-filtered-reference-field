@@ -58,8 +58,18 @@ const Field = (props: FieldProps) => {
     selectedRelatedField,
     multiple
   ) => {
+    let title
+    if (multiple) {
+      title = "Add exisiting entries"
+    } else {
+      if (entries.length > 0) {
+        title = "Replace entry"
+      } else {
+        title = "Add an existing entry"
+      }
+    }
     const selectedEntries = await props.sdk.dialogs.openCurrentApp({
-      title: "Insert existing entries",
+      title: title,
       minHeight: 700,
       width: 800,
       shouldCloseOnEscapePress: true,

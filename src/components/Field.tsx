@@ -144,6 +144,7 @@ const Field = (props: FieldProps) => {
 
     props.sdk.window.startAutoResizer()
     return detachChangeHandler
+    // eslint-disable-next-line
   }, [])
 
   return errorMessage ? (

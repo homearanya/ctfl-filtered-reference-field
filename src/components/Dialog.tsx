@@ -99,7 +99,6 @@ const Dialog = (props: DialogProps) => {
       )
     // eslint-disable-next-line
   }, [filter && filter.id, entryFilter && entryFilter.id])
-
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">

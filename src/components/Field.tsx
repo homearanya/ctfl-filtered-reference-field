@@ -1,7 +1,10 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react"
 import { Button, Flex, Paragraph } from "@contentful/forma-36-react-components"
-import { MultipleEntryReferenceEditor } from "@contentful/field-editor-reference"
+import {
+  SingleEntryReferenceEditor,
+  MultipleEntryReferenceEditor,
+} from "@contentful/field-editor-reference"
 import { FieldExtensionSDK } from "@contentful/app-sdk"
 
 interface FieldProps {
@@ -56,13 +59,14 @@ const Field = (props: FieldProps) => {
     relatedFieldID,
     relatedContentTypeFieldTitles,
     selectedRelatedField,
-    multiple
+    multiple,
+    entries
   ) => {
     let title
     if (multiple) {
       title = "Add exisiting entries"
     } else {
-      if (entries.length > 0) {
+      if (entries) {
         title = "Replace entry"
       } else {
         title = "Add an existing entry"
@@ -84,6 +88,10 @@ const Field = (props: FieldProps) => {
         relatedContentTypeFieldTitles,
         selectedRelatedField,
         alreadySelected: entries.map((e) => e.sys.id),
+
+        // alreadySelected: multiple
+        //   ? entries.map((e) => e.sys.id)
+        //   : [entries.sys.id],
         multiple,
       },
     })
@@ -92,7 +100,7 @@ const Field = (props: FieldProps) => {
         ? [...entries, ...selectedEntries]
         : [...selectedEntries]
       setEntries(newEntries)
-      props.sdk.field.setValue(newEntries)
+      props.sdk.field.setValue(multiple ? newEntries : { ...newEntries[0] })
     }
   }
 
@@ -187,7 +195,7 @@ const Field = (props: FieldProps) => {
   if (multiple) {
     buttonText = "Add exisiting entries"
   } else {
-    if (entries.length > 0) {
+    if (entries) {
       buttonText = "Replace entry"
     } else {
       buttonText = "Add an existing entry"
@@ -199,19 +207,35 @@ const Field = (props: FieldProps) => {
   ) : (
     <>
       <Flex marginBottom="spacingS" flexDirection="column">
-        <MultipleEntryReferenceEditor
-          renderCustomActions={() => null}
-          entityType="Entry"
-          viewType="link"
-          sdk={props.sdk}
-          isInitiallyDisabled={false}
-          parameters={{
-            instance: {
-              showCreateEntityAction: false,
-              showLinkEntityAction: false,
-            },
-          }}
-        />
+        {multiple ? (
+          <MultipleEntryReferenceEditor
+            renderCustomActions={() => null}
+            entityType="Entry"
+            viewType="link"
+            sdk={props.sdk}
+            isInitiallyDisabled={false}
+            parameters={{
+              instance: {
+                showCreateEntityAction: false,
+                showLinkEntityAction: false,
+              },
+            }}
+          />
+        ) : (
+          <SingleEntryReferenceEditor
+            renderCustomActions={() => null}
+            entityType="Entry"
+            viewType="link"
+            sdk={props.sdk}
+            isInitiallyDisabled={false}
+            parameters={{
+              instance: {
+                showCreateEntityAction: false,
+                showLinkEntityAction: false,
+              },
+            }}
+          />
+        )}
       </Flex>
       <Button
         onClick={() =>
@@ -223,7 +247,8 @@ const Field = (props: FieldProps) => {
             relatedFieldID,
             relatedContentTypeFieldTitles,
             selectedRelatedField,
-            multiple
+            multiple,
+            entries
           )
         }
       >

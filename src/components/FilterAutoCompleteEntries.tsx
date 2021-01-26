@@ -24,7 +24,6 @@ interface FilterAutoCompleteEntriesProps {
 const FilterAutoCompleteEntries = ({
   entries,
   contentType,
-  setFilter,
   entryFilter,
   setEntryFilter,
 }: FilterAutoCompleteEntriesProps) => {
@@ -53,11 +52,6 @@ const FilterAutoCompleteEntries = ({
       onQueryChange={handleQueryChange}
       onChange={(e) => {
         setEntryFilter(e)
-        const newSelectedRelatedField = {
-          title: e.label,
-          id: e.id,
-          contentType: e.contentType,
-        }
       }}
       placeholder={entryFilter ? entryFilter.label : `Choose ${contentType}`}
       isLoading={false}

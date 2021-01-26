@@ -38,6 +38,7 @@ const FilterAutoComplete = ({
   const [isLoading, setIsLoading] = useState(false)
   const [items, setItems] = useState<Item[] | []>([])
   const [filteredItems, setFilteredItems] = useState<Item[] | []>([])
+  // eslint-disable-next-line
   const [selectedItem, setSelectedItem] = useState<Item | null>(
     selectedRelatedField && selectedRelatedField.id
       ? {

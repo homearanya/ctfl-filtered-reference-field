@@ -261,7 +261,7 @@ const Field = (props: FieldProps) => {
       buttonText = "Add an existing entry"
     }
   }
-
+  console.log("Render: ", { selectedRelatedField })
   return errorMessage ? (
     <Paragraph>{errorMessage}</Paragraph>
   ) : (

@@ -22,7 +22,11 @@ const Field = (props: FieldProps) => {
   const [selectedRelatedField, setSelectedRelatedField] = useState(null)
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
 
-  const { descriptionFieldName, relatedFieldID } = props.sdk.parameters.instance
+  const {
+    descriptionFieldName,
+    relatedFieldID,
+    relatedContentTypeID,
+  } = props.sdk.parameters.instance
 
   const locale = props.sdk.field.locale
 
@@ -57,6 +61,7 @@ const Field = (props: FieldProps) => {
     contentTypeFieldTitle,
     contentTypeFieldDescription,
     relatedFieldID,
+    relatedContentTypeID,
     relatedContentTypeFieldTitles,
     selectedRelatedField,
     multiple,
@@ -117,67 +122,122 @@ const Field = (props: FieldProps) => {
         const relatedField = contentType.fields.find(
           (e) => e.id === relatedFieldID
         )
-        // Can be more than 1 content type
-        const relatedContentTypesIDs = relatedField
-          ? relatedField.validations[0].linkContentType
-          : []
-        // title fields for all related content types
-        Promise.all(
-          relatedContentTypesIDs.map((relatedContentTypeID) =>
-            props.sdk.space.getContentType(relatedContentTypeID)
+        // fetch related field on current entry (if any)
+        if (relatedField) {
+          // Can be more than 1 content type
+          const relatedContentTypesIDs = relatedField
+            ? relatedField.validations[0].linkContentType
+            : []
+          // title fields for all related content types
+          Promise.all(
+            relatedContentTypesIDs.map((relatedContentTypeID) =>
+              props.sdk.space.getContentType(relatedContentTypeID)
+            )
           )
-        )
-          .then((relatedContentTypes) => {
-            const fieldTitles = relatedContentTypes.reduce(
-              (acc, relatedContentType) => {
-                acc[relatedContentType.sys.id] = relatedContentType.displayField
-                return acc
-              },
-              {}
-            )
-            setRelatedContentTypeFieldTitles(fieldTitles)
-            // fetch related field on current entry (if any)
-            if (props.sdk.entry.fields[relatedFieldID]) {
-              detachChangeHandler = props.sdk.entry.fields[
-                relatedFieldID
-              ].onValueChanged((value) => {
-                const valueID = value ? value.sys.id : null
-                if (valueID) {
-                  props.sdk.space
-                    .getEntry(valueID)
-                    .then((entry) => {
-                      const contentType = entry.sys.contentType.sys.id
-                      const titleField = fieldTitles[contentType]
-                      setSelectedRelatedField({
-                        id: valueID,
-                        title: entry.fields[titleField][locale],
-                        contentType,
+            .then((relatedContentTypes) => {
+              const fieldTitles = relatedContentTypes.reduce(
+                (acc, relatedContentType) => {
+                  acc[relatedContentType.sys.id] =
+                    relatedContentType.displayField
+                  return acc
+                },
+                {}
+              )
+              setRelatedContentTypeFieldTitles(fieldTitles)
+              // fetch related field on current entry (if any)
+              if (props.sdk.entry.fields[relatedFieldID]) {
+                detachChangeHandler = props.sdk.entry.fields[
+                  relatedFieldID
+                ].onValueChanged((value) => {
+                  const valueID = value ? value.sys.id : null
+                  if (valueID) {
+                    props.sdk.space
+                      .getEntry(valueID)
+                      .then((entry) => {
+                        const contentType = entry.sys.contentType.sys.id
+                        const titleField = fieldTitles[contentType]
+                        setSelectedRelatedField({
+                          id: valueID,
+                          title: entry.fields[titleField][locale],
+                          contentType,
+                        })
                       })
-                    })
-                    .catch((error) => {
-                      console.log(
-                        "there has been an error (getContentType): ",
-                        error
-                      )
-                      setErrorMessage("The app configuration is not correct")
-                    })
-                } else {
-                  setSelectedRelatedField(null)
-                }
-              })
-            } else {
-              setSelectedRelatedField(null)
-            }
-          })
-          .catch((error) => {
-            console.log(
-              "there has been an error (getContentType - contentTypeFieldTitle): ",
-              error
-            )
-            setErrorMessage("The app configuration is not correct")
-          })
-      })
+                      .catch((error) => {
+                        console.log(
+                          "there has been an error (getContentType): ",
+                          error
+                        )
+                        setErrorMessage("The app configuration is not correct")
+                      })
+                  } else {
+                    setSelectedRelatedField(null)
+                  }
+                })
+              } else {
+                // related field id is not in the entry
+                // Searching for entries linking from
+                props.sdk.space
+                  .getEntries({ links_to_entry: props.sdk.ids.entry })
+                  .then((entries) => {
+                    let lookUpField
+                    if (entries.items.length > 0) {
+                      // look by relatedFieldID or relatedContentID
+                      if (entries.items[0].fields[relatedFieldID]) {
+                        lookUpField = relatedFieldID
+                      } else if (
+                        entries.items[0].fields[relatedContentTypeID]
+                      ) {
+                        lookUpField = relatedContentTypeID
+                      }
+                    }
 
+                    if (lookUpField) {
+                      const valueID =
+                        entries.items[0].fields[lookUpField][locale].sys.id
+                      props.sdk.space
+                        .getEntry(valueID)
+                        .then((entry) => {
+                          const contentTypeID = entry.sys.contentType.sys.id
+                          const titleField = fieldTitles[contentTypeID]
+
+                          setSelectedRelatedField({
+                            id: valueID,
+                            title: entry.fields[titleField][locale],
+                            contentType: contentTypeID,
+                          })
+                        })
+                        .catch((error) => {
+                          console.log(
+                            "there has been an error (getContentType): ",
+                            error
+                          )
+                          setErrorMessage(
+                            "The app configuration is not correct"
+                          )
+                        })
+                    } else {
+                      // No related field information
+                      setSelectedRelatedField(null)
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(
+                      "there has been an error (getContentType - contentTypeFieldTitle): ",
+                      error
+                    )
+                    setErrorMessage("The app configuration is not correct")
+                  })
+              }
+            })
+            .catch((error) => {
+              console.log(
+                "there has been an error (getContentType - contentTypeFieldTitle): ",
+                error
+              )
+              setErrorMessage("The app configuration is not correct")
+            })
+        }
+      })
       .catch((error) => {
         console.log(
           "there has been an error (getContentType - contentTypeFieldTitle): ",
@@ -245,6 +305,7 @@ const Field = (props: FieldProps) => {
             contentTypeFieldTitle,
             descriptionFieldName,
             relatedFieldID,
+            relatedContentTypeID,
             relatedContentTypeFieldTitles,
             selectedRelatedField,
             multiple,

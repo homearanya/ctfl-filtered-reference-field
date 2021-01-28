@@ -139,6 +139,7 @@ const Dialog = (props: DialogProps) => {
               marginBottom="spacingM"
               fullWidth
               flexDirection="column"
+              flexGrow={1}
               styled={{ cursor: "pointer" }}
             >
               <EntryCard

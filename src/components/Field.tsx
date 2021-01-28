@@ -21,6 +21,7 @@ const Field = (props: FieldProps) => {
 
   const [selectedRelatedField, setSelectedRelatedField] = useState(null)
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
+  const [loading, setLoading] = useState(true)
 
   const {
     descriptionFieldName,
@@ -61,7 +62,6 @@ const Field = (props: FieldProps) => {
     contentTypeFieldTitle,
     contentTypeFieldDescription,
     relatedFieldID,
-    relatedContentTypeID,
     relatedContentTypeFieldTitles,
     selectedRelatedField,
     multiple,
@@ -161,6 +161,7 @@ const Field = (props: FieldProps) => {
                           title: entry.fields[titleField][locale],
                           contentType,
                         })
+                        setLoading(false)
                       })
                       .catch((error) => {
                         console.log(
@@ -171,6 +172,7 @@ const Field = (props: FieldProps) => {
                       })
                   } else {
                     setSelectedRelatedField(null)
+                    setLoading(false)
                   }
                 })
               } else {
@@ -205,6 +207,7 @@ const Field = (props: FieldProps) => {
                             title: entry.fields[titleField][locale],
                             contentType: contentTypeID,
                           })
+                          setLoading(false)
                         })
                         .catch((error) => {
                           console.log(
@@ -218,6 +221,7 @@ const Field = (props: FieldProps) => {
                     } else {
                       // No related field information
                       setSelectedRelatedField(null)
+                      setLoading(false)
                     }
                   })
                   .catch((error) => {
@@ -261,7 +265,6 @@ const Field = (props: FieldProps) => {
       buttonText = "Add an existing entry"
     }
   }
-  console.log("Render: ", { selectedRelatedField })
   return errorMessage ? (
     <Paragraph>{errorMessage}</Paragraph>
   ) : (
@@ -298,6 +301,8 @@ const Field = (props: FieldProps) => {
         )}
       </Flex>
       <Button
+        loading={loading}
+        disabled={loading}
         onClick={() =>
           openSearch(
             locale,
@@ -305,7 +310,6 @@ const Field = (props: FieldProps) => {
             contentTypeFieldTitle,
             descriptionFieldName,
             relatedFieldID,
-            relatedContentTypeID,
             relatedContentTypeFieldTitles,
             selectedRelatedField,
             multiple,
@@ -313,7 +317,7 @@ const Field = (props: FieldProps) => {
           )
         }
       >
-        {buttonText}
+        {!loading && buttonText}
       </Button>
     </>
   )

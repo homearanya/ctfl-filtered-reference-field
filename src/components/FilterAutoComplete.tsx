@@ -97,8 +97,14 @@ const FilterAutoComplete = ({
               contentType: item.sys.contentType.sys.id,
             }
           })
-        setItems(items)
-        setFilteredItems(items)
+        const allEntry = {
+          label: "All",
+          lowerCaseLabel: "all",
+          id: null,
+          contentType: items && items.lenght > 0 ? items[0].contentType : null,
+        }
+        setItems([allEntry, ...items])
+        setFilteredItems([allEntry, ...items])
         setIsLoading(false)
       })
 
@@ -121,7 +127,7 @@ const FilterAutoComplete = ({
           contentType: e.contentType,
         }
         setFilter(newSelectedRelatedField)
-        setEntryFilter(null)
+        setEntryFilter("")
       }}
       placeholder={
         selectedItem ? selectedItem.label : `Choose ${relatedFieldID}`

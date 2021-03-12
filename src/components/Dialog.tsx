@@ -129,7 +129,7 @@ const Dialog = (props: DialogProps) => {
         setFilteredEntries(filteredEntries)
       }
     }
-  }, [entryFilter, setEntryFilter])
+  }, [entryFilter, setEntryFilter, entries])
 
   return (
     <Flex padding="spacingXl" flexDirection="column">

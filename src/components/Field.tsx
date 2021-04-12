@@ -5,6 +5,7 @@ import {
   SingleEntryReferenceEditor,
   MultipleEntryReferenceEditor,
 } from "@contentful/field-editor-reference"
+import { Action } from "@contentful/field-editor-reference/dist/types"
 import { FieldExtensionSDK } from "@contentful/app-sdk"
 
 interface FieldProps {
@@ -53,6 +54,13 @@ const Field = (props: FieldProps) => {
       setErrorMessage("No Content Type")
     } else {
       contentTypeID = props.sdk.field.items.validations[0].linkContentType[0]
+    }
+  }
+
+  const onAction = (action: Action) => {
+    const { type, id } = action
+    if (type === "delete") {
+      setEntries((entries) => entries.filter((entry) => entry.sys.id !== id))
     }
   }
 
@@ -245,7 +253,7 @@ const Field = (props: FieldProps) => {
       .catch((error) => {
         console.log(
           "there has been an error (getContentType - contentTypeFieldTitle): ",
-          errornpm
+          error
         )
         setErrorMessage("The app configuration is not correct")
       })
@@ -265,6 +273,7 @@ const Field = (props: FieldProps) => {
       buttonText = "Add an existing entry"
     }
   }
+
   return errorMessage ? (
     <Paragraph>{errorMessage}</Paragraph>
   ) : (
@@ -277,6 +286,7 @@ const Field = (props: FieldProps) => {
             viewType="link"
             sdk={props.sdk}
             isInitiallyDisabled={false}
+            onAction={onAction}
             parameters={{
               instance: {
                 showCreateEntityAction: false,
@@ -291,6 +301,7 @@ const Field = (props: FieldProps) => {
             viewType="link"
             sdk={props.sdk}
             isInitiallyDisabled={false}
+            onAction={onAction}
             parameters={{
               instance: {
                 showCreateEntityAction: false,

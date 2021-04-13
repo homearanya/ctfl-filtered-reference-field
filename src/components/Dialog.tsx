@@ -53,7 +53,7 @@ const Dialog = (props: DialogProps) => {
           sys: {
             type: "Link",
             linkType: "Entry",
-            id: entries[e].sys.id,
+            id: filteredEntries[e].sys.id,
           },
         }
       })
@@ -131,6 +131,7 @@ const Dialog = (props: DialogProps) => {
     }
   }, [entryFilter, setEntryFilter, entries])
 
+  console.log(entries, filteredEntries, selectedEntries)
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">

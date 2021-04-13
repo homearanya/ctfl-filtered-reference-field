@@ -131,7 +131,6 @@ const Dialog = (props: DialogProps) => {
     }
   }, [entryFilter, setEntryFilter, entries])
 
-  console.log(entries, filteredEntries, selectedEntries)
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">

@@ -31,7 +31,7 @@ const Dialog = (props: DialogProps) => {
     contentTypeID,
     contentTypeFieldTitle,
     contentTypeFieldDescription,
-    relatedFieldID,
+    relatedFieldId,
     relatedContentTypeFieldTitles,
     selectedRelatedField,
     alreadySelected,
@@ -66,7 +66,7 @@ const Dialog = (props: DialogProps) => {
         filter && filter.id
           ? {
               content_type: contentTypeID,
-              [`fields.${relatedFieldID}.sys.id`]: filter.id,
+              [`fields.${relatedFieldId}.sys.id`]: filter.id,
               skip: items.length,
               limit: 1000,
             }
@@ -137,7 +137,7 @@ const Dialog = (props: DialogProps) => {
         <Flex marginRight="spacingXl">
           <FilterAutoComplete
             sdk={props.sdk}
-            relatedFieldID={relatedFieldID}
+            relatedFieldId={relatedFieldId}
             selectedRelatedField={selectedRelatedField}
             relatedContentTypeFieldTitles={relatedContentTypeFieldTitles}
             locale={locale}

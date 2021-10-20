@@ -18,7 +18,7 @@ type SelectedRelatedField = {
 
 interface FilterAutoCompleteProps {
   sdk: DialogExtensionSDK
-  relatedFieldID: string
+  relatedFieldId: string
   selectedRelatedField: SelectedRelatedField | null
   relatedContentTypeFieldTitles: { [key: string]: string }
   locale: string
@@ -28,7 +28,7 @@ interface FilterAutoCompleteProps {
 
 const FilterAutoComplete = ({
   sdk,
-  relatedFieldID,
+  relatedFieldId,
   selectedRelatedField,
   relatedContentTypeFieldTitles,
   locale,
@@ -65,9 +65,9 @@ const FilterAutoComplete = ({
   useEffect(() => {
     setIsLoading(true)
     Promise.all(
-      Object.keys(relatedContentTypeFieldTitles).map((relatedContentId) =>
+      Object.keys(relatedContentTypeFieldTitles).map((relatedContentTypeId) =>
         sdk.space.getEntries({
-          content_type: relatedContentId,
+          content_type: relatedContentTypeId,
           limit: 1000,
         })
       )
@@ -90,9 +90,10 @@ const FilterAutoComplete = ({
                 item.fields[
                   relatedContentTypeFieldTitles[item.sys.contentType.sys.id]
                 ][locale],
-              lowerCaseLabel: item.fields[
-                relatedContentTypeFieldTitles[item.sys.contentType.sys.id]
-              ][locale].toLowerCase(),
+              lowerCaseLabel:
+                item.fields[
+                  relatedContentTypeFieldTitles[item.sys.contentType.sys.id]
+                ][locale].toLowerCase(),
               id: item.sys.id,
               contentType: item.sys.contentType.sys.id,
             }
@@ -130,7 +131,7 @@ const FilterAutoComplete = ({
         setEntryFilter("")
       }}
       placeholder={
-        selectedItem ? selectedItem.label : `Choose ${relatedFieldID}`
+        selectedItem ? selectedItem.label : `Choose ${relatedFieldId}`
       }
       isLoading={isLoading}
       width="medium"

@@ -23,9 +23,10 @@ const Field = (props: FieldProps) => {
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
   const [loading, setLoading] = useState(true)
 
-  const { descriptionFieldName, relatedFieldID, relatedContentTypeID } =
+  const { descriptionFieldName, relatedFieldId, relatedContentTypeId } =
     props.sdk.parameters.instance
 
+  console.log(props.sdk.parameters.instance)
   const locale = props.sdk.field.locale
 
   let contentTypeID, multiple
@@ -65,7 +66,7 @@ const Field = (props: FieldProps) => {
     contentTypeID,
     contentTypeFieldTitle,
     contentTypeFieldDescription,
-    relatedFieldID,
+    relatedFieldId,
     relatedContentTypeFieldTitles,
     selectedRelatedField,
     multiple,
@@ -93,7 +94,7 @@ const Field = (props: FieldProps) => {
         contentTypeID,
         contentTypeFieldTitle,
         contentTypeFieldDescription,
-        relatedFieldID,
+        relatedFieldId,
         relatedContentTypeFieldTitles,
         selectedRelatedField,
         alreadySelected: entries.map((e) => e.sys.id),
@@ -118,14 +119,14 @@ const Field = (props: FieldProps) => {
     let detachChangeHandler
     setErrorMessage("")
     // Main content type
-    console.log({ relatedFieldID })
+    console.log({ relatedFieldId })
     props.sdk.space
       .getContentType(contentTypeID)
       .then((contentType) => {
         setContentTypeFieldTitle(contentType.displayField)
         // Related content type
         const relatedField = contentType.fields.find(
-          (e) => e.id === relatedFieldID
+          (e) => e.id === relatedFieldId
         )
         // fetch related field on current entry (if any)
         if (relatedField) {
@@ -135,8 +136,8 @@ const Field = (props: FieldProps) => {
             : []
           // title fields for all related content types
           Promise.all(
-            relatedContentTypesIDs.map((relatedContentTypeID) =>
-              props.sdk.space.getContentType(relatedContentTypeID)
+            relatedContentTypesIDs.map((relatedContentTypeId) =>
+              props.sdk.space.getContentType(relatedContentTypeId)
             )
           )
             .then((relatedContentTypes) => {
@@ -150,9 +151,9 @@ const Field = (props: FieldProps) => {
               )
               setRelatedContentTypeFieldTitles(fieldTitles)
               // fetch related field on current entry (if any)
-              if (props.sdk.entry.fields[relatedFieldID]) {
+              if (props.sdk.entry.fields[relatedFieldId]) {
                 detachChangeHandler = props.sdk.entry.fields[
-                  relatedFieldID
+                  relatedFieldId
                 ].onValueChanged((value) => {
                   const valueID = value ? value.sys.id : null
                   console.log({ valueID })
@@ -191,18 +192,18 @@ const Field = (props: FieldProps) => {
                   .then((entries) => {
                     let lookUpField
                     console.log({
-                      relatedFieldID,
-                      relatedContentTypeID,
+                      relatedFieldId,
+                      relatedContentTypeId,
                       entries,
                     })
                     if (entries.items.length > 0) {
-                      // look by relatedFieldID or relatedContentID
-                      if (entries.items[0].fields[relatedFieldID]) {
-                        lookUpField = relatedFieldID
+                      // look by relatedFieldId or relatedContentID
+                      if (entries.items[0].fields[relatedFieldId]) {
+                        lookUpField = relatedFieldId
                       } else if (
-                        entries.items[0].fields[relatedContentTypeID]
+                        entries.items[0].fields[relatedContentTypeId]
                       ) {
-                        lookUpField = relatedContentTypeID
+                        lookUpField = relatedContentTypeId
                       }
                     }
 
@@ -326,7 +327,7 @@ const Field = (props: FieldProps) => {
             contentTypeID,
             contentTypeFieldTitle,
             descriptionFieldName,
-            relatedFieldID,
+            relatedFieldId,
             relatedContentTypeFieldTitles,
             selectedRelatedField,
             multiple,

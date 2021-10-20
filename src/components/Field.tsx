@@ -13,6 +13,7 @@ interface FieldProps {
 }
 
 const Field = (props: FieldProps) => {
+  console.log("I am in the Field Component")
   const [errorMessage, setErrorMessage] = useState("")
   const [contentTypeFieldTitle, setContentTypeFieldTitle] = useState("")
   const [relatedContentTypeFieldTitles, setRelatedContentTypeFieldTitles] =
@@ -184,10 +185,16 @@ const Field = (props: FieldProps) => {
               } else {
                 // related field id is not in the entry
                 // Searching for entries linking from
+                console.log("props.sdk.ids.entry: ", props.sdk.ids.entry)
                 props.sdk.space
                   .getEntries({ links_to_entry: props.sdk.ids.entry })
                   .then((entries) => {
                     let lookUpField
+                    console.log({
+                      relatedFieldID,
+                      relatedContentTypeID,
+                      entries,
+                    })
                     if (entries.items.length > 0) {
                       // look by relatedFieldID or relatedContentID
                       if (entries.items[0].fields[relatedFieldID]) {
@@ -202,12 +209,13 @@ const Field = (props: FieldProps) => {
                     if (lookUpField) {
                       const valueID =
                         entries.items[0].fields[lookUpField][locale].sys.id
+                      console.log({ lookUpField, valueID })
                       props.sdk.space
                         .getEntry(valueID)
                         .then((entry) => {
                           const contentTypeID = entry.sys.contentType.sys.id
                           const titleField = fieldTitles[contentTypeID]
-
+                          console.log({ contentTypeID, titleField, entry })
                           setSelectedRelatedField({
                             id: valueID,
                             title: entry.fields[titleField][locale],

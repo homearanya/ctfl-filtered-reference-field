@@ -13,7 +13,6 @@ interface FieldProps {
 }
 
 const Field = (props: FieldProps) => {
-  console.log("I am in the Field Component")
   const [errorMessage, setErrorMessage] = useState("")
   const [contentTypeFieldTitle, setContentTypeFieldTitle] = useState("")
   const [relatedContentTypeFieldTitles, setRelatedContentTypeFieldTitles] =
@@ -26,7 +25,6 @@ const Field = (props: FieldProps) => {
   const { descriptionFieldName, relatedFieldId, relatedContentTypeId } =
     props.sdk.parameters.instance
 
-  console.log(props.sdk.parameters.instance)
   const locale = props.sdk.field.locale
 
   let contentTypeID, multiple
@@ -119,7 +117,6 @@ const Field = (props: FieldProps) => {
     let detachChangeHandler
     setErrorMessage("")
     // Main content type
-    console.log({ relatedFieldId })
     props.sdk.space
       .getContentType(contentTypeID)
       .then((contentType) => {
@@ -156,12 +153,10 @@ const Field = (props: FieldProps) => {
                   relatedFieldId
                 ].onValueChanged((value) => {
                   const valueID = value ? value.sys.id : null
-                  console.log({ valueID })
                   if (valueID) {
                     props.sdk.space
                       .getEntry(valueID)
                       .then((entry) => {
-                        console.log({ entry })
                         const contentType = entry.sys.contentType.sys.id
                         const titleField = fieldTitles[contentType]
                         setSelectedRelatedField({
@@ -186,16 +181,10 @@ const Field = (props: FieldProps) => {
               } else {
                 // related field id is not in the entry
                 // Searching for entries linking from
-                console.log("props.sdk.ids.entry: ", props.sdk.ids.entry)
                 props.sdk.space
                   .getEntries({ links_to_entry: props.sdk.ids.entry })
                   .then((entries) => {
                     let lookUpField
-                    console.log({
-                      relatedFieldId,
-                      relatedContentTypeId,
-                      entries,
-                    })
                     if (entries.items.length > 0) {
                       // look by relatedFieldId or relatedContentID
                       if (entries.items[0].fields[relatedFieldId]) {
@@ -210,13 +199,11 @@ const Field = (props: FieldProps) => {
                     if (lookUpField) {
                       const valueID =
                         entries.items[0].fields[lookUpField][locale].sys.id
-                      console.log({ lookUpField, valueID })
                       props.sdk.space
                         .getEntry(valueID)
                         .then((entry) => {
                           const contentTypeID = entry.sys.contentType.sys.id
                           const titleField = fieldTitles[contentTypeID]
-                          console.log({ contentTypeID, titleField, entry })
                           setSelectedRelatedField({
                             id: valueID,
                             title: entry.fields[titleField][locale],

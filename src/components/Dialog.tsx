@@ -130,7 +130,6 @@ const Dialog = (props: DialogProps) => {
       }
     }
   }, [entryFilter, setEntryFilter, entries])
-  console.log({ selectedRelatedField })
   return (
     <Flex padding="spacingXl" flexDirection="column">
       <Flex marginBottom="spacingL">

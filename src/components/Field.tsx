@@ -15,20 +15,15 @@ interface FieldProps {
 const Field = (props: FieldProps) => {
   const [errorMessage, setErrorMessage] = useState("")
   const [contentTypeFieldTitle, setContentTypeFieldTitle] = useState("")
-  const [
-    relatedContentTypeFieldTitles,
-    setRelatedContentTypeFieldTitles,
-  ] = useState({})
+  const [relatedContentTypeFieldTitles, setRelatedContentTypeFieldTitles] =
+    useState({})
 
   const [selectedRelatedField, setSelectedRelatedField] = useState(null)
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
   const [loading, setLoading] = useState(true)
 
-  const {
-    descriptionFieldName,
-    relatedFieldID,
-    relatedContentTypeID,
-  } = props.sdk.parameters.instance
+  const { descriptionFieldName, relatedFieldID, relatedContentTypeID } =
+    props.sdk.parameters.instance
 
   const locale = props.sdk.field.locale
 
@@ -122,6 +117,7 @@ const Field = (props: FieldProps) => {
     let detachChangeHandler
     setErrorMessage("")
     // Main content type
+    console.log({ relatedFieldID })
     props.sdk.space
       .getContentType(contentTypeID)
       .then((contentType) => {
@@ -158,10 +154,12 @@ const Field = (props: FieldProps) => {
                   relatedFieldID
                 ].onValueChanged((value) => {
                   const valueID = value ? value.sys.id : null
+                  console.log({ valueID })
                   if (valueID) {
                     props.sdk.space
                       .getEntry(valueID)
                       .then((entry) => {
+                        console.log({ entry })
                         const contentType = entry.sys.contentType.sys.id
                         const titleField = fieldTitles[contentType]
                         setSelectedRelatedField({

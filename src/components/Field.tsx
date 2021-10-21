@@ -1,12 +1,55 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react"
-import { Button, Flex, Paragraph } from "@contentful/forma-36-react-components"
+import {
+  Button,
+  Flex,
+  Paragraph,
+  EntryCard,
+  DropdownList,
+  DropdownListItem,
+} from "@contentful/forma-36-react-components"
 import {
   SingleEntryReferenceEditor,
   MultipleEntryReferenceEditor,
 } from "@contentful/field-editor-reference"
 import { Action } from "@contentful/field-editor-reference/dist/types"
 import { FieldExtensionSDK } from "@contentful/app-sdk"
+import { findStatus } from "../utils/helpers"
+import Thumbnail from "./Thumbnail"
+
+interface ActionsMenuProps {
+  onEdit?: () => void
+  onRemove?: () => void
+  onMoveTop?: () => void
+  onMoveBottom?: () => void
+}
+const ActionsMenu = ({
+  onEdit,
+  onRemove,
+  onMoveTop,
+  onMoveBottom,
+}: ActionsMenuProps) => {
+  return (
+    <>
+      <DropdownList>
+        <DropdownListItem onClick={onEdit} isDisabled={!onEdit}>
+          Edit
+        </DropdownListItem>
+        <DropdownListItem onClick={onRemove} isDisabled={!onRemove}>
+          Remove
+        </DropdownListItem>
+      </DropdownList>
+      <DropdownList border="top">
+        <DropdownListItem onClick={onMoveTop} isDisabled={!onMoveTop}>
+          Move to top
+        </DropdownListItem>
+        <DropdownListItem onClick={onMoveBottom} isDisabled={!onMoveBottom}>
+          Move to bottom
+        </DropdownListItem>
+      </DropdownList>
+    </>
+  )
+}
 
 interface FieldProps {
   sdk: FieldExtensionSDK
@@ -110,6 +153,57 @@ const Field = (props: FieldProps) => {
       setEntries(newEntries)
       props.sdk.field.setValue(multiple ? newEntries : { ...newEntries[0] })
     }
+  }
+
+  const renderCustomCard: CustomCardRenderer = (
+    {
+      entity,
+      contentType,
+      cardDragHandle,
+      onEdit,
+      onRemove,
+      onMoveTop,
+      onMoveBottom,
+    },
+    linkActionsProps,
+    renderDefaultCard
+  ) => {
+    let imageId
+    if (entity?.fields?.images) {
+      imageId = entity?.fields?.images[locale][0]?.sys?.id
+    }
+    // return renderDefaultCard()
+    return (
+      <Flex>
+        <EntryCard
+          title={entity.fields.title ? entity.fields.title[locale] : ""}
+          description={
+            entity.fields?.description ? entity.fields?.description[locale] : ""
+          }
+          contentType={contentType?.name}
+          status={findStatus(
+            entity.sys.publishedVersion,
+            entity.sys.version,
+            entity.sys.archivedVersion
+          )}
+          dropdownListElements={
+            <ActionsMenu
+              onEdit={onEdit}
+              onRemove={onRemove}
+              onMoveTop={onMoveTop}
+              onMoveBottom={onMoveBottom}
+            />
+          }
+          cardDragHandleComponent={cardDragHandle}
+          onClick={onEdit}
+          thumbnailElement={
+            <Thumbnail imageId={imageId} locale={locale} sdk={props.sdk} />
+          }
+          size="auto"
+          className={`entry-card`}
+        />
+      </Flex>
+    )
   }
 
   // Fetch content type information for main and related fields
@@ -275,6 +369,7 @@ const Field = (props: FieldProps) => {
       <Flex marginBottom="spacingS" flexDirection="column">
         {multiple ? (
           <MultipleEntryReferenceEditor
+            renderCustomCard={renderCustomCard}
             renderCustomActions={() => null}
             entityType="Entry"
             viewType="link"
@@ -290,6 +385,7 @@ const Field = (props: FieldProps) => {
           />
         ) : (
           <SingleEntryReferenceEditor
+            renderCustomCard={renderCustomCard}
             renderCustomActions={() => null}
             entityType="Entry"
             viewType="link"

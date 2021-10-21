@@ -9,17 +9,8 @@ import {
 } from "@contentful/forma-36-react-components"
 import { DialogExtensionSDK } from "@contentful/app-sdk"
 import FilterAutoComplete from "./FilterAutoComplete"
-
-const findStatus = (publishedVersion, version) => {
-  if (!publishedVersion) return "draft"
-  if (!!publishedVersion && version >= publishedVersion + 2) {
-    return "changed"
-  }
-  if (!!publishedVersion && version >= publishedVersion + 1) {
-    return "published"
-  }
-  return "archived"
-}
+import { findStatus } from "../utils/helpers"
+import Thumbnail from "./Thumbnail"
 
 interface DialogProps {
   sdk: DialogExtensionSDK
@@ -175,7 +166,10 @@ const Dialog = (props: DialogProps) => {
           filteredEntries.map((entry, index) => {
             const isSelected =
               selectedEntries.findIndex((e) => e === index) > -1
-
+            let imageId
+            if (entry?.fields?.images) {
+              imageId = entry?.fields?.images[locale][0]?.sys?.id
+            }
             return (
               <Flex
                 key={index}
@@ -228,6 +222,13 @@ const Dialog = (props: DialogProps) => {
                       }
                     }
                   }}
+                  thumbnailElement={
+                    <Thumbnail
+                      imageId={imageId}
+                      locale={locale}
+                      sdk={props.sdk}
+                    />
+                  }
                   size="auto"
                   className={`entry-card${isSelected ? "-selected" : ""}`}
                 />

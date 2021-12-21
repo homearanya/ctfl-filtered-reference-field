@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import {
   Button,
   Flex,
@@ -60,10 +60,15 @@ const Field = (props: FieldProps) => {
   const [contentTypeFieldTitle, setContentTypeFieldTitle] = useState("")
   const [relatedContentTypeFieldTitles, setRelatedContentTypeFieldTitles] =
     useState({})
+  const activityRef = useRef({})
+  const mountRef = useRef(false)
+  const [refreshEntry, setRefreshEntry] = useState(false)
 
   const [selectedRelatedField, setSelectedRelatedField] = useState(null)
   const [entries, setEntries] = useState(props.sdk.field.getValue() || [])
   const [loading, setLoading] = useState(true)
+
+  const entryRefresh = () => setRefreshEntry((refreshEntry) => !refreshEntry)
 
   const { descriptionFieldName, relatedFieldId, relatedContentTypeId } =
     props.sdk.parameters.instance
@@ -155,24 +160,31 @@ const Field = (props: FieldProps) => {
     }
   }
 
-  const renderCustomCard: CustomCardRenderer = (
-    {
-      entity,
-      contentType,
-      cardDragHandle,
-      onEdit,
-      onRemove,
-      onMoveTop,
-      onMoveBottom,
-    },
-    linkActionsProps,
-    renderDefaultCard
-  ) => {
-    let imageId
-    if (entity?.fields?.images) {
-      imageId = entity?.fields?.images[locale][0]?.sys?.id
+  const renderCustomCard: CustomCardRenderer = ({
+    entity,
+    contentType,
+    cardDragHandle,
+    onEdit,
+    onRemove,
+    onMoveTop,
+    onMoveBottom,
+  }) => {
+    const imageId = entity?.fields?.images?.[locale][0]?.sys?.id
+    const prevEntity = activityRef.current[entity.sys.id]
+    if (prevEntity) {
+      const prevImages = JSON.stringify(prevEntity.fields.images)
+      const currentImages = JSON.stringify(entity.fields.images)
+      if (prevImages !== currentImages) {
+        console.log("images have changed")
+        setTimeout(() => entryRefresh(), 100)
+        activityRef.current[entity.sys.id] = entity
+      }
     }
-    // return renderDefaultCard()
+
+    const handlerEdit = () => {
+      activityRef.current[entity.sys.id] = entity
+      onEdit()
+    }
     return (
       <Flex>
         <EntryCard
@@ -188,14 +200,14 @@ const Field = (props: FieldProps) => {
           )}
           dropdownListElements={
             <ActionsMenu
-              onEdit={onEdit}
+              onEdit={handlerEdit}
               onRemove={onRemove}
               onMoveTop={onMoveTop}
               onMoveBottom={onMoveBottom}
             />
           }
           cardDragHandleComponent={cardDragHandle}
-          onClick={onEdit}
+          onClick={handlerEdit}
           thumbnailElement={
             <Thumbnail imageId={imageId} locale={locale} sdk={props.sdk} />
           }
@@ -361,6 +373,18 @@ const Field = (props: FieldProps) => {
       buttonText = "Add an existing entry"
     }
   }
+  useEffect(() => {
+    // To refresh when activity images have been added, removed or changed
+    if (mountRef.current) {
+      setTimeout(
+        () =>
+          entries &&
+          props.sdk.field.setValue(multiple ? entries : { ...entries[0] }),
+        100
+      )
+    }
+    mountRef.current = true
+  }, [entries, multiple, props.sdk.field, refreshEntry])
 
   return errorMessage ? (
     <Paragraph>{errorMessage}</Paragraph>
